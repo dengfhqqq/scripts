@@ -56,9 +56,9 @@ function buildSfsyUrl(cookieMap) {
   return REQUIRED_KEYS.map((k) => `${k}=${cookieMap[k] || ""}`).join(";");
 }
 
-function notifyWithOpenUrl(title, subtitle, message, openUrl) {
+function notify(title, subtitle, message) {
   if (typeof $notification !== "undefined") {
-    $notification.post(title, subtitle, message, { openUrl });
+    $notification.post(title, subtitle, message);
   }
 }
 
@@ -96,15 +96,8 @@ try {
   const sfsyUrl = buildSfsyUrl(newCookie);
   $persistentStore.write(sfsyUrl, STORE_KEY);
 
-  const copyText = `sfsyUrl\n\n${sfsyUrl}\n\nLong-press to copy.`;
-  const copyPage = `data:text/plain;charset=utf-8,${encodeURIComponent(copyText)}`;
-
-  notifyWithOpenUrl(
-    "SFSY Capture OK",
-    "Tap notification to copy sfsyUrl",
-    "No lock, no dedup",
-    copyPage
-  );
+  notify("SFSY Capture OK", "Saved to persistent key: sfsy_cookie", "Open Loon -> Persistent Store to copy if needed");
+  notify("SFSY VALUE", "sessionId/_login_mobile_/_login_user_id_", sfsyUrl);
 
   return done({ sfsy_capture: true, sfsyUrl, host: TARGET_HOST, path: url });
 } catch (e) {
