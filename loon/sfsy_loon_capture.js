@@ -3,6 +3,7 @@ SF Express Loon capture script for sfsy.py.
 Behavior:
 1) Capture sessionId, _login_mobile_, _login_user_id_.
 2) No lock and no dedup. Every valid capture can notify.
+3) Tap notification copies sfsyUrl to clipboard.
 */
 
 const STORE_KEY = "sfsy_cookie";
@@ -62,6 +63,15 @@ function notify(title, subtitle, message) {
   }
 }
 
+function notifyCopy(title, subtitle, message, valueToCopy) {
+  if (typeof $notification === "undefined") return;
+  const attach = {
+    openUrl: "loon://",
+    clipboard: valueToCopy
+  };
+  $notification.post(title, subtitle, message, attach);
+}
+
 function done(body) {
   if (body) return $done({ body });
   return $done({});
@@ -96,13 +106,15 @@ try {
   const sfsyUrl = buildSfsyUrl(newCookie);
   $persistentStore.write(sfsyUrl, STORE_KEY);
 
-  notify("SFSY Capture OK", "Saved to persistent key: sfsy_cookie", "Open Loon -> Persistent Store to copy if needed");
-  notify("SFSY VALUE", "sessionId/_login_mobile_/_login_user_id_", sfsyUrl);
+  notifyCopy(
+    "SFSY Capture OK",
+    "Tap this notification to copy sfsyUrl",
+    "After tap, value will be in clipboard",
+    sfsyUrl
+  );
 
   return done({ sfsy_capture: true, sfsyUrl, host: TARGET_HOST, path: url });
 } catch (e) {
-  if (typeof $notification !== "undefined") {
-    $notification.post("SFSY Capture Failed", "Script error", String(e));
-  }
+  notify("SFSY Capture Failed", "Script error", String(e));
   return done();
 }
