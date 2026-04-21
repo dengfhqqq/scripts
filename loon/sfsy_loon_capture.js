@@ -3,7 +3,7 @@ SF Express Loon capture script for sfsy.py.
 Behavior:
 1) Capture sessionId, _login_mobile_, _login_user_id_.
 2) No lock and no dedup. Every valid capture can notify.
-3) Show explicit manual-copy value in notification.
+3) Send both manual-copy and tap-to-copy notifications.
 */
 
 const STORE_KEY = "sfsy_cookie";
@@ -63,6 +63,20 @@ function notify(title, subtitle, message) {
   }
 }
 
+function notifyTapCopy(value) {
+  if (typeof $notification === "undefined") return;
+  const attach = {
+    openUrl: "loon://",
+    clipboard: value
+  };
+  $notification.post(
+    "SFSY Tap To Copy",
+    "Tap this notification to copy",
+    "Tap notification -> clipboard",
+    attach
+  );
+}
+
 function done(body) {
   if (body) return $done({ body });
   return $done({});
@@ -97,11 +111,16 @@ try {
   const sfsyUrl = buildSfsyUrl(newCookie);
   $persistentStore.write(sfsyUrl, STORE_KEY);
 
+  // Easy fallback: value is also in script runtime log.
+  console.log(`SFSY_VALUE=${sfsyUrl}`);
+
   notify(
     "SFSY Capture OK",
-    "请长按通知手动复制下面完整内容",
-    `请复制: ${sfsyUrl}`
+    "Manual copy (long press notification)",
+    `COPY_THIS: ${sfsyUrl}`
   );
+
+  notifyTapCopy(sfsyUrl);
 
   return done({ sfsy_capture: true, sfsyUrl, host: TARGET_HOST, path: url });
 } catch (e) {
